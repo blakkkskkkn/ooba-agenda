@@ -70,9 +70,17 @@
   }
   .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 96px; }
 
-  header.app { margin-bottom: 28px; }
+  header.app { margin-bottom: 20px; }
   header.app h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: .02em; }
   header.app p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .meeting-bar {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 16px; margin-bottom: 20px; font-size: 14px;
+  }
+  .meeting-bar label { font-weight: 600; flex: none; }
+  .meeting-bar select { flex: 1; min-width: 160px; width: auto; }
 
   .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
   .step h2 { font-size: 17px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
@@ -112,6 +120,10 @@
   button.small { padding: 6px 12px; font-size: 13px; }
   button.ghost { border: none; background: none; color: var(--muted); font-size: 13px; padding: 6px 8px; }
   button.ghost:hover { color: var(--warn); }
+  button.ghost.move { font-size: 15px; }
+  button.ghost.move:hover { color: var(--accent); }
+  button.ghost:disabled { color: var(--line); cursor: default; }
+  button.ghost.move:disabled:hover { color: var(--line); }
 
   .items { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
   .item { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; background: var(--paper); }
@@ -144,6 +156,12 @@
   .preview-card th, .preview-card td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
   .preview-card th { background: var(--accent-soft); font-size: 13px; }
   .preview-card td.time { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .preview-card th.w-min, .preview-card td.min { text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .preview-card th.w-time { width: 17%; }
+  .preview-card th.w-type { width: 14%; }
+  .preview-card th.w-min { width: 7%; }
+  .preview-card tr.total-row td { background: var(--accent-soft); font-weight: 600; }
+  .preview-card tr.total-row td:first-child { text-align: right; }
   .preview-meta { font-size: 14px; margin: 0 0 12px; }
   .preview-meta dt { font-weight: 600; display: inline; }
   .preview-meta dd { display: inline; margin: 0 16px 0 4px; }
@@ -154,14 +172,41 @@
 
   .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
 
+  /* 月まとめ印刷用（画面では常に非表示、印刷時のみ表示） */
+  .monthly { display: none; }
+
   @media print {
-    body { background: #fff; color: #000; font-size: 12pt; }
+    @page { margin: 14mm 12mm; }
+    body { background: #fff; color: #000; font-size: 11pt; line-height: 1.55; }
     .no-print { display: none !important; }
     .wrap { max-width: none; padding: 0; }
     .step { border: none; padding: 0; margin: 0; }
-    .preview-card th { background: #eee; }
-    .preview-card th, .preview-card td { border-color: #999; }
-    .pill, .pill.decide, .pill.share, .pill.discuss { border: 1px solid #666; color: #000; background: none; }
+
+    /* 会議アジェンダ（詳細版）の体裁 */
+    .preview-title { text-align: center; font-size: 17pt; letter-spacing: .06em; margin: 0 0 6pt; }
+    .preview-meta { text-align: center; font-size: 11pt; margin: 0 0 12pt; }
+    .preview-meta dd { margin: 0 12pt 0 4pt; }
+    .table-scroll { overflow: visible; }
+    .preview-card table { font-size: 10.5pt; }
+    .preview-card th, .preview-card td { border: 1px solid #555; padding: 7pt 8pt; }
+    .preview-card th { background: #F0F0EC; font-size: 10pt; }
+    .preview-card thead { display: table-header-group; }
+    .preview-card tr { page-break-inside: avoid; }
+    .preview-card tr.total-row td { background: #F7F7F3; }
+    .pill, .pill.decide, .pill.share, .pill.discuss { border: 1px solid #666; color: #000; background: none; font-size: 9.5pt; padding: 1pt 8pt; }
+
+    /* 月まとめ */
+    body.print-monthly #preview { display: none; }
+    body.print-monthly .monthly { display: block; }
+    .monthly .m-title { text-align: center; font-size: 16pt; font-weight: 700; letter-spacing: .06em; margin: 0 0 14pt; }
+    .monthly .m-block { page-break-inside: avoid; margin: 0 0 16pt; }
+    .monthly .m-head { font-size: 12pt; font-weight: 700; margin: 0 0 5pt; border-left: 4pt solid #444; padding-left: 8pt; }
+    .monthly table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+    .monthly th, .monthly td { border: 1px solid #666; padding: 4pt 8pt; text-align: left; vertical-align: top; }
+    .monthly th { background: #F0F0EC; font-size: 9.5pt; }
+    .monthly td.time { white-space: nowrap; width: 22%; font-variant-numeric: tabular-nums; }
+    .monthly td.type { white-space: nowrap; width: 16%; }
+    .monthly .m-empty { font-size: 10pt; color: #444; margin: 2pt 0 0; }
   }
 </style>
 </head>
@@ -172,6 +217,13 @@
     <h1>会議アジェンダづくり</h1>
     <p>議題を書き出すだけで、「何のための話か」「何分使うか」が入ったアジェンダができます。</p>
   </header>
+
+  <div class="meeting-bar no-print">
+    <label for="f-meeting">つくった会議：</label>
+    <select id="f-meeting"></select>
+    <button class="small" id="btn-new-meeting">＋新しい会議</button>
+    <button class="ghost" id="btn-del-meeting">この会議を削除</button>
+  </div>
 
   <section class="step no-print" id="step1">
     <h2><span class="num">1</span>会議の情報</h2>
@@ -198,9 +250,9 @@
 
   <section class="step no-print" id="step2">
     <h2><span class="num">2</span>話したいことを書き出す（議題）</h2>
-    <p class="hint">1つずつ書いて「追加」を押してください。「何のための話か」と「時間のめやす」は自動で入ります。ちがうなと思ったら、あとから直せます。</p>
+    <p class="hint">1つずつ書いて「追加」を押してください。「何のための話か」と「時間のめやす」は自動で入ります。ちがうなと思ったら、あとから直せます。順番は ▲▼ で入れ替えられます。</p>
     <div class="add-row" style="margin-top:12px;">
-      <input type="text" id="f-topic" placeholder="例：運動会の日程を決めたい">
+      <input type="text" id="f-topic" placeholder="例：春の行事の開始時間を決めたい">
       <button class="primary" id="btn-add">追加</button>
     </div>
     <div class="items" id="items"></div>
@@ -212,16 +264,21 @@
     <div id="preview-body"><p class="preview-empty">会議の情報と議題を入れると、ここにアジェンダが表示されます。</p></div>
     <div class="actions no-print">
       <button class="primary" id="btn-print">印刷する</button>
+      <button id="btn-print-monthly">月まとめを印刷する</button>
       <button id="btn-reset">はじめからつくり直す</button>
     </div>
     <p class="preview-note no-print" id="print-hint" hidden>印刷の画面が開かないときは、キーボードで ⌘P（Windows のときは Ctrl+P）を押すと印刷できます。</p>
+    <p class="preview-note no-print">「月まとめを印刷する」を押すと、保存されているすべての会議を1枚の一覧（時間と議題だけ）にして印刷できます。</p>
     <p class="preview-note no-print">入力した内容はこのブラウザに自動保存されます。次にこのページを開いたときも残っています。</p>
   </section>
+
+  <section class="monthly" id="monthly"></section>
 </div>
 
 <script>
 (function () {
-  var STORAGE_KEY = 'ooba-agenda-v1';
+  var STORAGE_KEY = 'ooba-agenda-v2';
+  var OLD_KEY = 'ooba-agenda-v1';
 
   var TYPES = {
     decide:  { label: '決める',   minutes: 10, goal: '今日この場で結論を出す' },
@@ -235,11 +292,20 @@
     { type: 'discuss', words: ['について', '意見', '検討', '話し合', '相談', 'どうする', 'アイデア'] }
   ];
 
-  var state = {
-    name: '', date: '', start: '', end: '',
-    items: [] // {id, title, type|null, q:1|2, minutes, minutesEdited, goal, goalEdited}
-  };
-  var nextId = 1;
+  var state = { meetings: [], currentId: null };
+  var nextItemId = 1;
+  var nextMeetingId = 1;
+
+  function blankMeeting() {
+    return { id: nextMeetingId++, name: '', date: '', start: '', end: '', items: [] };
+  }
+
+  function cur() {
+    for (var i = 0; i < state.meetings.length; i++) {
+      if (state.meetings[i].id === state.currentId) return state.meetings[i];
+    }
+    return state.meetings[0];
+  }
 
   function classify(title) {
     for (var i = 0; i < KEYWORDS.length; i++) {
@@ -266,28 +332,55 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         var data = JSON.parse(raw);
-        if (data && typeof data === 'object') {
+        if (data && typeof data === 'object' && Array.isArray(data.meetings)) {
           state = data;
-          state.items = Array.isArray(state.items) ? state.items : [];
-          for (var i = 0; i < state.items.length; i++) {
-            if (state.items[i].id >= nextId) nextId = state.items[i].id + 1;
+        }
+      } else {
+        // 旧バージョン（1会議のみ）のデータを引き継ぐ
+        var old = localStorage.getItem(OLD_KEY);
+        if (old) {
+          var d = JSON.parse(old);
+          if (d && typeof d === 'object') {
+            state = {
+              meetings: [{
+                id: 1,
+                name: d.name || '', date: d.date || '', start: d.start || '', end: d.end || '',
+                items: Array.isArray(d.items) ? d.items : []
+              }],
+              currentId: 1
+            };
           }
         }
       }
     } catch (e) {}
+    if (!Array.isArray(state.meetings)) state.meetings = [];
+    if (state.meetings.length === 0) {
+      state.meetings = [{ id: 1, name: '', date: '', start: '', end: '', items: [] }];
+    }
+    for (var i = 0; i < state.meetings.length; i++) {
+      var m = state.meetings[i];
+      if (m.id >= nextMeetingId) nextMeetingId = m.id + 1;
+      m.items = Array.isArray(m.items) ? m.items : [];
+      for (var j = 0; j < m.items.length; j++) {
+        if (m.items[j].id >= nextItemId) nextItemId = m.items[j].id + 1;
+      }
+    }
+    if (!cur()) state.currentId = state.meetings[0].id;
+    if (state.currentId !== cur().id) state.currentId = cur().id;
   }
 
   function budgetMinutes() {
-    if (!state.start || !state.end) return null;
-    var s = state.start.split(':'), e = state.end.split(':');
+    var m = cur();
+    if (!m.start || !m.end) return null;
+    var s = m.start.split(':'), e = m.end.split(':');
     var diff = (parseInt(e[0], 10) * 60 + parseInt(e[1], 10)) - (parseInt(s[0], 10) * 60 + parseInt(s[1], 10));
     return diff > 0 ? diff : null;
   }
 
   function totalMinutes() {
-    var t = 0;
-    for (var i = 0; i < state.items.length; i++) {
-      if (state.items[i].type) t += state.items[i].minutes;
+    var items = cur().items, t = 0;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type) t += items[i].minutes;
     }
     return t;
   }
@@ -309,10 +402,38 @@
 
   // ---------- rendering ----------
 
+  function meetingLabel(m) {
+    var label = m.name || '（名前のない会議）';
+    if (m.date) {
+      var p = m.date.split('-');
+      if (p.length === 3) label += '｜' + parseInt(p[1], 10) + '/' + parseInt(p[2], 10);
+    }
+    return label;
+  }
+
+  function renderMeetingBar() {
+    var sel = document.getElementById('f-meeting');
+    var html = '';
+    for (var i = 0; i < state.meetings.length; i++) {
+      var m = state.meetings[i];
+      html += '<option value="' + m.id + '"' + (m.id === state.currentId ? ' selected' : '') + '>' + esc(meetingLabel(m)) + '</option>';
+    }
+    sel.innerHTML = html;
+  }
+
+  function syncForm() {
+    var m = cur();
+    document.getElementById('f-name').value = m.name || '';
+    document.getElementById('f-date').value = m.date || '';
+    document.getElementById('f-start').value = m.start || '';
+    document.getElementById('f-end').value = m.end || '';
+  }
+
   function renderBudget() {
     var el = document.getElementById('budget-line');
+    var m = cur();
     var b = budgetMinutes();
-    if (state.start && state.end && b === null) {
+    if (m.start && m.end && b === null) {
       el.innerHTML = '終わる時間が始まる時間より前になっています。もう一度確かめてください。';
       return;
     }
@@ -323,10 +444,12 @@
     el.innerHTML = 'この会議で使える時間は <strong>' + b + '分</strong> です。';
   }
 
-  function itemHtml(item) {
+  function itemHtml(item, index, count) {
     var html = '<div class="item" data-id="' + item.id + '">';
     html += '<div class="item-head"><span class="item-title">' + esc(item.title) + '</span>';
     if (item.type) html += '<span class="pill ' + item.type + '">' + TYPES[item.type].label + '</span>';
+    html += '<button class="ghost move" data-act="up"' + (index === 0 ? ' disabled' : '') + ' title="上へ動かす" aria-label="上へ動かす">▲</button>';
+    html += '<button class="ghost move" data-act="down"' + (index === count - 1 ? ' disabled' : '') + ' title="下へ動かす" aria-label="下へ動かす">▼</button>';
     html += '<button class="ghost" data-act="remove">削除</button></div>';
 
     if (!item.type) {
@@ -363,9 +486,10 @@
   }
 
   function renderItems() {
+    var items = cur().items;
     var wrap = document.getElementById('items');
     var html = '';
-    for (var i = 0; i < state.items.length; i++) html += itemHtml(state.items[i]);
+    for (var i = 0; i < items.length; i++) html += itemHtml(items[i], i, items.length);
     wrap.innerHTML = html;
   }
 
@@ -373,7 +497,7 @@
     var bar = document.getElementById('total-bar');
     var b = budgetMinutes();
     var t = totalMinutes();
-    if (state.items.length === 0) { bar.hidden = true; return; }
+    if (cur().items.length === 0) { bar.hidden = true; return; }
     bar.hidden = false;
     if (b === null) {
       bar.className = 'total-bar';
@@ -391,28 +515,31 @@
   }
 
   function renderPreview() {
+    var m = cur();
     var body = document.getElementById('preview-body');
-    var ready = state.items.length > 0;
-    if (!ready) {
+    if (m.items.length === 0) {
       body.innerHTML = '<p class="preview-empty">会議の情報と議題を入れると、ここにアジェンダが表示されます。</p>';
       return;
     }
     var html = '';
-    html += '<p class="preview-title">' + (state.name ? esc(state.name) : '会議') + '　アジェンダ</p>';
+    html += '<p class="preview-title">' + (m.name ? esc(m.name) : '会議') + '　アジェンダ</p>';
     html += '<dl class="preview-meta">';
-    if (state.date) html += '<dt>日にち：</dt><dd>' + esc(fmtDate(state.date)) + '</dd>';
-    if (state.start && state.end) html += '<dt>時間：</dt><dd>' + esc(state.start) + '〜' + esc(state.end) + '</dd>';
+    if (m.date) html += '<dt>日にち：</dt><dd>' + esc(fmtDate(m.date)) + '</dd>';
+    if (m.start && m.end) html += '<dt>時間：</dt><dd>' + esc(m.start) + '〜' + esc(m.end) + '</dd>';
     html += '</dl>';
 
-    var hasStart = !!state.start;
-    var cursor = hasStart ? parseInt(state.start.split(':')[0], 10) * 60 + parseInt(state.start.split(':')[1], 10) : 0;
+    var hasStart = !!m.start;
+    var cursor = hasStart ? parseInt(m.start.split(':')[0], 10) * 60 + parseInt(m.start.split(':')[1], 10) : 0;
 
     html += '<div class="table-scroll"><table><thead><tr>';
-    if (hasStart) html += '<th>時間</th>';
-    html += '<th>議題</th><th>何のための話？</th><th>分</th><th>ゴール（終わったときの姿）</th></tr></thead><tbody>';
-    for (var i = 0; i < state.items.length; i++) {
-      var item = state.items[i];
+    if (hasStart) html += '<th class="w-time">時間</th>';
+    html += '<th>議題</th><th class="w-type">何のための話？</th><th class="w-min">分</th><th>ゴール（終わったときの姿）</th></tr></thead><tbody>';
+    var typedTotal = 0, typedCount = 0;
+    for (var i = 0; i < m.items.length; i++) {
+      var item = m.items[i];
       if (!item.type) continue;
+      typedTotal += item.minutes;
+      typedCount++;
       html += '<tr>';
       if (hasStart) {
         html += '<td class="time">' + fmtTime(cursor) + '〜' + fmtTime(cursor + item.minutes) + '</td>';
@@ -420,20 +547,84 @@
       }
       html += '<td>' + esc(item.title) + '</td>' +
         '<td><span class="pill ' + item.type + '">' + TYPES[item.type].label + '</span></td>' +
-        '<td class="time">' + item.minutes + '</td>' +
+        '<td class="min">' + item.minutes + '</td>' +
         '<td>' + esc(item.goal) + '</td></tr>';
+    }
+    if (typedCount > 0) {
+      html += '<tr class="total-row"><td colspan="' + (hasStart ? 3 : 2) + '">合計</td><td class="min">' + typedTotal + '分</td><td></td></tr>';
     }
     html += '</tbody></table></div>';
 
     var pending = 0;
-    for (var k = 0; k < state.items.length; k++) if (!state.items[k].type) pending++;
+    for (var k = 0; k < m.items.length; k++) if (!m.items[k].type) pending++;
     if (pending > 0) {
       html += '<p class="preview-note no-print">まだ質問に答えていない議題が' + pending + 'つあります。答えるとアジェンダに入ります。</p>';
     }
     body.innerHTML = html;
   }
 
+  function monthlyHtml() {
+    var list = [];
+    for (var i = 0; i < state.meetings.length; i++) {
+      var m = state.meetings[i];
+      var hasContent = m.name || m.date || m.items.length > 0;
+      if (hasContent) list.push(m);
+    }
+    if (list.length === 0) return '';
+    list.sort(function (a, b) {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    });
+
+    // 日付がすべて同じ月なら「◯月の会議予定」、まざっていれば「会議予定まとめ」
+    var months = {};
+    for (var j = 0; j < list.length; j++) {
+      if (list[j].date) {
+        var p = list[j].date.split('-');
+        if (p.length === 3) months[parseInt(p[1], 10)] = true;
+      }
+    }
+    var keys = Object.keys(months);
+    var title = keys.length === 1 ? keys[0] + '月の会議予定' : '会議予定まとめ';
+
+    var html = '<p class="m-title">' + title + '</p>';
+    for (var k = 0; k < list.length; k++) {
+      var mm = list[k];
+      var head = esc(mm.name || '（名前のない会議）');
+      if (mm.date) head += '　' + esc(fmtDate(mm.date));
+      if (mm.start && mm.end) head += '　' + esc(mm.start) + '〜' + esc(mm.end);
+      html += '<div class="m-block"><p class="m-head">' + head + '</p>';
+
+      var hasStart = !!mm.start;
+      var cursor = hasStart ? parseInt(mm.start.split(':')[0], 10) * 60 + parseInt(mm.start.split(':')[1], 10) : 0;
+      var rows = '';
+      for (var t = 0; t < mm.items.length; t++) {
+        var item = mm.items[t];
+        if (!item.type) continue;
+        rows += '<tr>';
+        if (hasStart) {
+          rows += '<td class="time">' + fmtTime(cursor) + '〜' + fmtTime(cursor + item.minutes) + '</td>';
+          cursor += item.minutes;
+        } else {
+          rows += '<td class="time">' + item.minutes + '分</td>';
+        }
+        rows += '<td>' + esc(item.title) + '</td>' +
+          '<td class="type"><span class="pill ' + item.type + '">' + TYPES[item.type].label + '</span></td></tr>';
+      }
+      if (rows) {
+        html += '<table><thead><tr><th>時間</th><th>議題</th><th>何のための話？</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      } else {
+        html += '<p class="m-empty">（議題はまだ入っていません）</p>';
+      }
+      html += '</div>';
+    }
+    return html;
+  }
+
   function renderAll() {
+    renderMeetingBar();
     renderBudget();
     renderItems();
     renderTotal();
@@ -445,9 +636,9 @@
 
   function bindField(id, key) {
     var el = document.getElementById(id);
-    el.value = state[key] || '';
     el.addEventListener('input', function () {
-      state[key] = el.value;
+      cur()[key] = el.value;
+      renderMeetingBar();
       renderBudget();
       renderTotal();
       renderPreview();
@@ -461,11 +652,11 @@
     if (!title) return;
     var type = classify(title);
     var item = {
-      id: nextId++, title: title, type: type, q: 1,
+      id: nextItemId++, title: title, type: type, q: 1,
       minutes: type ? TYPES[type].minutes : 0, minutesEdited: false,
       goal: type ? TYPES[type].goal : '', goalEdited: false
     };
-    state.items.push(item);
+    cur().items.push(item);
     input.value = '';
     input.focus();
     renderItems();
@@ -475,7 +666,8 @@
   }
 
   function findItem(id) {
-    for (var i = 0; i < state.items.length; i++) if (state.items[i].id === id) return state.items[i];
+    var items = cur().items;
+    for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
     return null;
   }
 
@@ -502,8 +694,15 @@
     var item = findItem(parseInt(card.getAttribute('data-id'), 10));
     if (!item) return;
     var act = btn.getAttribute('data-act');
+    var items = cur().items;
     if (act === 'remove') {
-      state.items = state.items.filter(function (x) { return x !== item; });
+      cur().items = items.filter(function (x) { return x !== item; });
+    } else if (act === 'up' || act === 'down') {
+      var idx = items.indexOf(item);
+      var to = act === 'up' ? idx - 1 : idx + 1;
+      if (to < 0 || to >= items.length) return;
+      items.splice(idx, 1);
+      items.splice(to, 0, item);
     } else if (act === 'q1-yes') {
       setType(item, 'decide');
     } else if (act === 'q1-no') {
@@ -544,19 +743,57 @@
     save();
   });
 
+  // 会議の切り替え・追加・削除
+  document.getElementById('f-meeting').addEventListener('change', function () {
+    state.currentId = parseInt(this.value, 10);
+    syncForm();
+    renderAll();
+  });
+
+  document.getElementById('btn-new-meeting').addEventListener('click', function () {
+    var m = blankMeeting();
+    state.meetings.push(m);
+    state.currentId = m.id;
+    syncForm();
+    renderAll();
+    document.getElementById('f-name').focus();
+  });
+
+  document.getElementById('btn-del-meeting').addEventListener('click', function () {
+    var m = cur();
+    if (!confirm('会議「' + (m.name || '（名前のない会議）') + '」を削除します。よろしいですか？')) return;
+    state.meetings = state.meetings.filter(function (x) { return x !== m; });
+    if (state.meetings.length === 0) state.meetings.push(blankMeeting());
+    state.currentId = state.meetings[0].id;
+    syncForm();
+    renderAll();
+  });
+
   // 印刷
   document.getElementById('btn-print').addEventListener('click', function () {
     window.print();
   });
 
+  document.getElementById('btn-print-monthly').addEventListener('click', function () {
+    var html = monthlyHtml();
+    if (!html) {
+      alert('まとめて印刷できる会議がまだありません。');
+      return;
+    }
+    document.getElementById('monthly').innerHTML = html;
+    document.body.classList.add('print-monthly');
+    window.print();
+  });
+
+  window.addEventListener('afterprint', function () {
+    document.body.classList.remove('print-monthly');
+  });
+
   document.getElementById('btn-reset').addEventListener('click', function () {
-    if (!confirm('入力した内容をすべて消して、はじめからつくり直します。よろしいですか？')) return;
-    state = { name: '', date: '', start: '', end: '', items: [] };
-    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-    document.getElementById('f-name').value = '';
-    document.getElementById('f-date').value = '';
-    document.getElementById('f-start').value = '';
-    document.getElementById('f-end').value = '';
+    if (!confirm('いま開いている会議の入力内容をすべて消して、はじめからつくり直します。よろしいですか？')) return;
+    var m = cur();
+    m.name = ''; m.date = ''; m.start = ''; m.end = ''; m.items = [];
+    syncForm();
     renderAll();
   });
 
@@ -565,6 +802,7 @@
   bindField('f-date', 'date');
   bindField('f-start', 'start');
   bindField('f-end', 'end');
+  syncForm();
   renderAll();
 })();
 </script>
