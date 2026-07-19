@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会議アジェンダづくり｜大庭保育園</title>
+<style>
+  :root {
+    --paper: #FAFAF6;
+    --card: #FFFFFF;
+    --ink: #2B3230;
+    --muted: #67736E;
+    --line: #DFE5E1;
+    --accent: #2E7D6B;
+    --accent-soft: #E4F0EC;
+    --warn: #B3372E;
+    --warn-soft: #F9E9E7;
+    --decide: #2E7D6B;
+    --decide-bg: #E4F0EC;
+    --share: #4A6FA5;
+    --share-bg: #E8EEF6;
+    --discuss: #A06B22;
+    --discuss-bg: #F6EEDF;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #1C211F;
+      --card: #252B29;
+      --ink: #E8ECEA;
+      --muted: #9AA6A1;
+      --line: #3A423F;
+      --accent: #5FB39E;
+      --accent-soft: #2A3B36;
+      --warn: #E0766D;
+      --warn-soft: #43302E;
+      --decide: #5FB39E;
+      --decide-bg: #2A3B36;
+      --share: #8FAFD8;
+      --share-bg: #2B3440;
+      --discuss: #D2A45C;
+      --discuss-bg: #403829;
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #FAFAF6; --card: #FFFFFF; --ink: #2B3230; --muted: #67736E;
+    --line: #DFE5E1; --accent: #2E7D6B; --accent-soft: #E4F0EC;
+    --warn: #B3372E; --warn-soft: #F9E9E7;
+    --decide: #2E7D6B; --decide-bg: #E4F0EC;
+    --share: #4A6FA5; --share-bg: #E8EEF6;
+    --discuss: #A06B22; --discuss-bg: #F6EEDF;
+  }
+  :root[data-theme="dark"] {
+    --paper: #1C211F; --card: #252B29; --ink: #E8ECEA; --muted: #9AA6A1;
+    --line: #3A423F; --accent: #5FB39E; --accent-soft: #2A3B36;
+    --warn: #E0766D; --warn-soft: #43302E;
+    --decide: #5FB39E; --decide-bg: #2A3B36;
+    --share: #8FAFD8; --share-bg: #2B3440;
+    --discuss: #D2A45C; --discuss-bg: #403829;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 24px 16px 96px; }
+
+  header.app { margin-bottom: 28px; }
+  header.app h1 { font-size: 24px; margin: 0 0 4px; letter-spacing: .02em; }
+  header.app p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+  .step h2 { font-size: 17px; margin: 0 0 14px; display: flex; align-items: center; gap: 10px; }
+  .step h2 .num {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .hint { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .field input[type="text"], .field input[type="date"], .field input[type="time"], .field textarea, select {
+    width: 100%; padding: 10px 12px; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper); color: var(--ink);
+    font-family: inherit;
+  }
+  .field textarea { resize: vertical; line-height: 1.6; }
+  .field input:focus, .field textarea:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+
+  .budget { margin-top: 6px; padding: 10px 14px; border-radius: 8px; background: var(--accent-soft); font-size: 14px; }
+  .budget strong { font-variant-numeric: tabular-nums; }
+
+  .add-row { display: flex; gap: 8px; }
+  .add-row input { flex: 1; padding: 10px 12px; font-size: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font-family: inherit; }
+  button {
+    font-family: inherit; font-size: 15px; cursor: pointer;
+    border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); padding: 10px 16px;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.small { padding: 6px 12px; font-size: 13px; }
+  button.ghost { border: none; background: none; color: var(--muted); font-size: 13px; padding: 6px 8px; }
+  button.ghost:hover { color: var(--warn); }
+
+  .items { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .item { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; background: var(--paper); }
+  .item-head { display: flex; align-items: baseline; gap: 8px; }
+  .item-title { font-weight: 600; font-size: 16px; flex: 1; }
+  .item-controls { display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-top: 10px; }
+  .item-controls .ctrl label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .item-goal { margin-top: 10px; }
+  .item-goal label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .item-goal input { width: 100%; padding: 8px 10px; font-size: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font-family: inherit; }
+  .minutes-wrap { display: flex; align-items: center; gap: 6px; }
+  .minutes-wrap input { width: 64px; padding: 8px; font-size: 16px; text-align: center; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--ink); font-variant-numeric: tabular-nums; font-family: inherit; }
+  .auto-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+  .pill.decide { color: var(--decide); background: var(--decide-bg); }
+  .pill.share { color: var(--share); background: var(--share-bg); }
+  .pill.discuss { color: var(--discuss); background: var(--discuss-bg); }
+
+  .question { margin-top: 10px; padding: 12px; border-radius: 8px; background: var(--accent-soft); }
+  .question p { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+  .question .q-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .total-bar { margin-top: 16px; padding: 12px 14px; border-radius: var(--radius); background: var(--accent-soft); font-size: 15px; }
+  .total-bar strong { font-variant-numeric: tabular-nums; }
+  .total-bar.over { background: var(--warn-soft); color: var(--warn); }
+  .total-bar .advice { display: block; font-size: 13px; margin-top: 4px; font-weight: 600; }
+
+  .preview-card table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .preview-card th, .preview-card td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+  .preview-card th { background: var(--accent-soft); font-size: 13px; }
+  .preview-card td.time { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .preview-meta { font-size: 14px; margin: 0 0 12px; }
+  .preview-meta dt { font-weight: 600; display: inline; }
+  .preview-meta dd { display: inline; margin: 0 16px 0 4px; }
+  .preview-title { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+  .table-scroll { overflow-x: auto; }
+  .preview-empty { color: var(--muted); font-size: 14px; }
+  .preview-note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+
+  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+  @media print {
+    body { background: #fff; color: #000; font-size: 12pt; }
+    .no-print { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    .step { border: none; padding: 0; margin: 0; }
+    .preview-card th { background: #eee; }
+    .preview-card th, .preview-card td { border-color: #999; }
+    .pill, .pill.decide, .pill.share, .pill.discuss { border: 1px solid #666; color: #000; background: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="app no-print">
+    <h1>会議アジェンダづくり</h1>
+    <p>議題を書き出すだけで、「何のための話か」「何分使うか」が入ったアジェンダができます。</p>
+  </header>
+
+  <section class="step no-print" id="step1">
+    <h2><span class="num">1</span>会議の情報</h2>
+    <div class="field">
+      <label for="f-name">会議の名前</label>
+      <input type="text" id="f-name" placeholder="例：7月 職員会議">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f-start">始まる時間</label>
+        <input type="time" id="f-start">
+      </div>
+      <div class="field">
+        <label for="f-end">終わる予定の時間（必ず入れてください）</label>
+        <input type="time" id="f-end">
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-date">開催日</label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="budget" id="budget-line">始まる時間と終わる時間を入れると、会議に使える時間がここに出ます。</div>
+  </section>
+
+  <section class="step no-print" id="step2">
+    <h2><span class="num">2</span>話したいことを書き出す（議題）</h2>
+    <p class="hint">1つずつ書いて「追加」を押してください。「何のための話か」と「時間のめやす」は自動で入ります。ちがうなと思ったら、あとから直せます。</p>
+    <div class="add-row" style="margin-top:12px;">
+      <input type="text" id="f-topic" placeholder="例：運動会の日程を決めたい">
+      <button class="primary" id="btn-add">追加</button>
+    </div>
+    <div class="items" id="items"></div>
+    <div class="total-bar" id="total-bar" hidden></div>
+  </section>
+
+  <section class="step preview-card" id="preview">
+    <h2 class="no-print"><span class="num">3</span>できあがったアジェンダ</h2>
+    <div id="preview-body"><p class="preview-empty">会議の情報と議題を入れると、ここにアジェンダが表示されます。</p></div>
+    <div class="actions no-print">
+      <button class="primary" id="btn-print">印刷する</button>
+      <button id="btn-reset">はじめからつくり直す</button>
+    </div>
+    <p class="preview-note no-print" id="print-hint" hidden>印刷の画面が開かないときは、キーボードで ⌘P（Windows のときは Ctrl+P）を押すと印刷できます。</p>
+    <p class="preview-note no-print">入力した内容はこのブラウザに自動保存されます。次にこのページを開いたときも残っています。</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  var STORAGE_KEY = 'ooba-agenda-v1';
+
+  var TYPES = {
+    decide:  { label: '決める',   minutes: 10, goal: '今日この場で結論を出す' },
+    share:   { label: '共有する', minutes: 5,  goal: '全員が内容を知っている状態にする' },
+    discuss: { label: '話し合う', minutes: 15, goal: 'みんなの意見が出そろい、次にやることが見えている' }
+  };
+
+  var KEYWORDS = [
+    { type: 'decide',  words: ['決める', '決めたい', '決定', '承認', '選ぶ', '選定', '日程', 'どちらに', 'どれに'] },
+    { type: 'share',   words: ['報告', '反省', '振り返り', 'ふりかえり', '共有', 'お知らせ', '案内', '連絡', '紹介', '結果'] },
+    { type: 'discuss', words: ['について', '意見', '検討', '話し合', '相談', 'どうする', 'アイデア'] }
+  ];
+
+  var state = {
+    name: '', date: '', start: '', end: '',
+    items: [] // {id, title, type|null, q:1|2, minutes, minutesEdited, goal, goalEdited}
+  };
+  var nextId = 1;
+
+  function classify(title) {
+    for (var i = 0; i < KEYWORDS.length; i++) {
+      var group = KEYWORDS[i];
+      for (var j = 0; j < group.words.length; j++) {
+        if (title.indexOf(group.words[j]) !== -1) return group.type;
+      }
+    }
+    return null;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data && typeof data === 'object') {
+          state = data;
+          state.items = Array.isArray(state.items) ? state.items : [];
+          for (var i = 0; i < state.items.length; i++) {
+            if (state.items[i].id >= nextId) nextId = state.items[i].id + 1;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+
+  function budgetMinutes() {
+    if (!state.start || !state.end) return null;
+    var s = state.start.split(':'), e = state.end.split(':');
+    var diff = (parseInt(e[0], 10) * 60 + parseInt(e[1], 10)) - (parseInt(s[0], 10) * 60 + parseInt(s[1], 10));
+    return diff > 0 ? diff : null;
+  }
+
+  function totalMinutes() {
+    var t = 0;
+    for (var i = 0; i < state.items.length; i++) {
+      if (state.items[i].type) t += state.items[i].minutes;
+    }
+    return t;
+  }
+
+  function fmtTime(totalMin) {
+    var h = Math.floor(totalMin / 60) % 24;
+    var m = totalMin % 60;
+    return (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m);
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    if (p.length !== 3) return iso;
+    var d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    var youbi = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+    return parseInt(p[1], 10) + '月' + parseInt(p[2], 10) + '日（' + youbi + '）';
+  }
+
+  // ---------- rendering ----------
+
+  function renderBudget() {
+    var el = document.getElementById('budget-line');
+    var b = budgetMinutes();
+    if (state.start && state.end && b === null) {
+      el.innerHTML = '終わる時間が始まる時間より前になっています。もう一度確かめてください。';
+      return;
+    }
+    if (b === null) {
+      el.textContent = '始まる時間と終わる時間を入れると、会議に使える時間がここに出ます。';
+      return;
+    }
+    el.innerHTML = 'この会議で使える時間は <strong>' + b + '分</strong> です。';
+  }
+
+  function itemHtml(item) {
+    var html = '<div class="item" data-id="' + item.id + '">';
+    html += '<div class="item-head"><span class="item-title">' + esc(item.title) + '</span>';
+    if (item.type) html += '<span class="pill ' + item.type + '">' + TYPES[item.type].label + '</span>';
+    html += '<button class="ghost" data-act="remove">削除</button></div>';
+
+    if (!item.type) {
+      html += '<div class="question">';
+      if (item.q === 1) {
+        html += '<p>この議題では、その場でみんなで何かを決めますか？</p>' +
+          '<div class="q-buttons">' +
+          '<button class="small" data-act="q1-yes">決めます</button>' +
+          '<button class="small" data-act="q1-no">決めません</button></div>';
+      } else {
+        html += '<p>みんなの意見を聞きたいですか？　それとも伝えるだけですか？</p>' +
+          '<div class="q-buttons">' +
+          '<button class="small" data-act="q2-yes">意見を聞きたい</button>' +
+          '<button class="small" data-act="q2-no">伝えるだけ</button></div>';
+      }
+      html += '</div>';
+    } else {
+      html += '<div class="item-controls">' +
+        '<div class="ctrl"><label>何のための話？</label>' +
+        '<select data-act="type">';
+      for (var key in TYPES) {
+        html += '<option value="' + key + '"' + (key === item.type ? ' selected' : '') + '>' + TYPES[key].label + '</option>';
+      }
+      html += '</select></div>' +
+        '<div class="ctrl"><label>時間のめやす</label>' +
+        '<div class="minutes-wrap"><input type="number" min="1" max="120" step="1" value="' + item.minutes + '" data-act="minutes">分</div></div>' +
+        '</div>';
+      html += '<div class="item-goal"><label>終わったときにどうなっていたい？（ゴール）</label>' +
+        '<input type="text" value="' + esc(item.goal) + '" data-act="goal"></div>';
+      html += '<div class="auto-note">「何のための話？」と「時間」は自動で入れたおすすめです。ちがうときは直してください。</div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderItems() {
+    var wrap = document.getElementById('items');
+    var html = '';
+    for (var i = 0; i < state.items.length; i++) html += itemHtml(state.items[i]);
+    wrap.innerHTML = html;
+  }
+
+  function renderTotal() {
+    var bar = document.getElementById('total-bar');
+    var b = budgetMinutes();
+    var t = totalMinutes();
+    if (state.items.length === 0) { bar.hidden = true; return; }
+    bar.hidden = false;
+    if (b === null) {
+      bar.className = 'total-bar';
+      bar.innerHTML = '議題の合計：<strong>' + t + '分</strong>（始まる時間と終わる時間を入れると、収まるかどうかを確かめられます）';
+      return;
+    }
+    if (t > b) {
+      bar.className = 'total-bar over';
+      bar.innerHTML = '議題の合計 <strong>' + t + '分</strong> ／ 使える時間 <strong>' + b + '分</strong> — このままだと時間内に終わりません。' +
+        '<span class="advice">議題をへらす・次回にまわす・時間のめやすを短くする、のどれかを考えてみましょう。</span>';
+    } else {
+      bar.className = 'total-bar';
+      bar.innerHTML = '議題の合計 <strong>' + t + '分</strong> ／ 使える時間 <strong>' + b + '分</strong> — 時間内に収まりそうです（残り' + (b - t) + '分）。';
+    }
+  }
+
+  function renderPreview() {
+    var body = document.getElementById('preview-body');
+    var ready = state.items.length > 0;
+    if (!ready) {
+      body.innerHTML = '<p class="preview-empty">会議の情報と議題を入れると、ここにアジェンダが表示されます。</p>';
+      return;
+    }
+    var html = '';
+    html += '<p class="preview-title">' + (state.name ? esc(state.name) : '会議') + '　アジェンダ</p>';
+    html += '<dl class="preview-meta">';
+    if (state.date) html += '<dt>日にち：</dt><dd>' + esc(fmtDate(state.date)) + '</dd>';
+    if (state.start && state.end) html += '<dt>時間：</dt><dd>' + esc(state.start) + '〜' + esc(state.end) + '</dd>';
+    html += '</dl>';
+
+    var hasStart = !!state.start;
+    var cursor = hasStart ? parseInt(state.start.split(':')[0], 10) * 60 + parseInt(state.start.split(':')[1], 10) : 0;
+
+    html += '<div class="table-scroll"><table><thead><tr>';
+    if (hasStart) html += '<th>時間</th>';
+    html += '<th>議題</th><th>何のための話？</th><th>分</th><th>ゴール（終わったときの姿）</th></tr></thead><tbody>';
+    for (var i = 0; i < state.items.length; i++) {
+      var item = state.items[i];
+      if (!item.type) continue;
+      html += '<tr>';
+      if (hasStart) {
+        html += '<td class="time">' + fmtTime(cursor) + '〜' + fmtTime(cursor + item.minutes) + '</td>';
+        cursor += item.minutes;
+      }
+      html += '<td>' + esc(item.title) + '</td>' +
+        '<td><span class="pill ' + item.type + '">' + TYPES[item.type].label + '</span></td>' +
+        '<td class="time">' + item.minutes + '</td>' +
+        '<td>' + esc(item.goal) + '</td></tr>';
+    }
+    html += '</tbody></table></div>';
+
+    var pending = 0;
+    for (var k = 0; k < state.items.length; k++) if (!state.items[k].type) pending++;
+    if (pending > 0) {
+      html += '<p class="preview-note no-print">まだ質問に答えていない議題が' + pending + 'つあります。答えるとアジェンダに入ります。</p>';
+    }
+    body.innerHTML = html;
+  }
+
+  function renderAll() {
+    renderBudget();
+    renderItems();
+    renderTotal();
+    renderPreview();
+    save();
+  }
+
+  // ---------- events ----------
+
+  function bindField(id, key) {
+    var el = document.getElementById(id);
+    el.value = state[key] || '';
+    el.addEventListener('input', function () {
+      state[key] = el.value;
+      renderBudget();
+      renderTotal();
+      renderPreview();
+      save();
+    });
+  }
+
+  function addTopic() {
+    var input = document.getElementById('f-topic');
+    var title = input.value.trim();
+    if (!title) return;
+    var type = classify(title);
+    var item = {
+      id: nextId++, title: title, type: type, q: 1,
+      minutes: type ? TYPES[type].minutes : 0, minutesEdited: false,
+      goal: type ? TYPES[type].goal : '', goalEdited: false
+    };
+    state.items.push(item);
+    input.value = '';
+    input.focus();
+    renderItems();
+    renderTotal();
+    renderPreview();
+    save();
+  }
+
+  function findItem(id) {
+    for (var i = 0; i < state.items.length; i++) if (state.items[i].id === id) return state.items[i];
+    return null;
+  }
+
+  function setType(item, type) {
+    item.type = type;
+    if (!item.minutesEdited) item.minutes = TYPES[type].minutes;
+    if (!item.goalEdited) item.goal = TYPES[type].goal;
+  }
+
+  document.getElementById('btn-add').addEventListener('click', addTopic);
+  document.getElementById('f-topic').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      // 日本語入力の変換確定のEnterでは追加しない（変換中はここで止める）
+      if (e.isComposing || e.keyCode === 229) return;
+      e.preventDefault();
+      addTopic();
+    }
+  });
+
+  document.getElementById('items').addEventListener('click', function (e) {
+    var btn = e.target.closest('button');
+    if (!btn) return;
+    var card = e.target.closest('.item');
+    var item = findItem(parseInt(card.getAttribute('data-id'), 10));
+    if (!item) return;
+    var act = btn.getAttribute('data-act');
+    if (act === 'remove') {
+      state.items = state.items.filter(function (x) { return x !== item; });
+    } else if (act === 'q1-yes') {
+      setType(item, 'decide');
+    } else if (act === 'q1-no') {
+      item.q = 2;
+    } else if (act === 'q2-yes') {
+      setType(item, 'discuss');
+    } else if (act === 'q2-no') {
+      setType(item, 'share');
+    } else {
+      return;
+    }
+    renderItems();
+    renderTotal();
+    renderPreview();
+    save();
+  });
+
+  document.getElementById('items').addEventListener('input', function (e) {
+    var card = e.target.closest('.item');
+    if (!card) return;
+    var item = findItem(parseInt(card.getAttribute('data-id'), 10));
+    if (!item) return;
+    var act = e.target.getAttribute('data-act');
+    if (act === 'minutes') {
+      var v = parseInt(e.target.value, 10);
+      if (!isNaN(v) && v > 0) { item.minutes = v; item.minutesEdited = true; }
+    } else if (act === 'goal') {
+      item.goal = e.target.value;
+      item.goalEdited = true;
+    } else if (act === 'type') {
+      setType(item, e.target.value);
+      renderItems();
+    } else {
+      return;
+    }
+    renderTotal();
+    renderPreview();
+    save();
+  });
+
+  // 印刷
+  document.getElementById('btn-print').addEventListener('click', function () {
+    window.print();
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    if (!confirm('入力した内容をすべて消して、はじめからつくり直します。よろしいですか？')) return;
+    state = { name: '', date: '', start: '', end: '', items: [] };
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-date').value = '';
+    document.getElementById('f-start').value = '';
+    document.getElementById('f-end').value = '';
+    renderAll();
+  });
+
+  load();
+  bindField('f-name', 'name');
+  bindField('f-date', 'date');
+  bindField('f-start', 'start');
+  bindField('f-end', 'end');
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
