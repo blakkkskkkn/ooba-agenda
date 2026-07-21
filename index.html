@@ -201,6 +201,7 @@
     .monthly .m-title { text-align: center; font-size: 16pt; font-weight: 700; letter-spacing: .06em; margin: 0 0 14pt; }
     .monthly .m-block { page-break-inside: avoid; margin: 0 0 16pt; }
     .monthly .m-head { font-size: 12pt; font-weight: 700; margin: 0 0 5pt; border-left: 4pt solid #444; padding-left: 8pt; }
+    .monthly .m-roles { font-size: 9.5pt; color: #333; margin: 0 0 5pt; padding-left: 12pt; }
     .monthly table { width: 100%; border-collapse: collapse; font-size: 10pt; }
     .monthly th, .monthly td { border: 1px solid #666; padding: 4pt 8pt; text-align: left; vertical-align: top; }
     .monthly th { background: #F0F0EC; font-size: 9.5pt; }
@@ -244,6 +245,16 @@
     <div class="field">
       <label for="f-date">開催日</label>
       <input type="date" id="f-date">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f-facilitator">司会進行</label>
+        <input type="text" id="f-facilitator" placeholder="例：小松﨑">
+      </div>
+      <div class="field">
+        <label for="f-recorder">議事録</label>
+        <input type="text" id="f-recorder" placeholder="例：大塚">
+      </div>
     </div>
     <div class="budget" id="budget-line">始まる時間と終わる時間を入れると、会議に使える時間がここに出ます。</div>
   </section>
@@ -297,7 +308,7 @@
   var nextMeetingId = 1;
 
   function blankMeeting() {
-    return { id: nextMeetingId++, name: '', date: '', start: '', end: '', items: [] };
+    return { id: nextMeetingId++, name: '', date: '', start: '', end: '', facilitator: '', recorder: '', items: [] };
   }
 
   function cur() {
@@ -345,6 +356,7 @@
               meetings: [{
                 id: 1,
                 name: d.name || '', date: d.date || '', start: d.start || '', end: d.end || '',
+                facilitator: d.facilitator || '', recorder: d.recorder || '',
                 items: Array.isArray(d.items) ? d.items : []
               }],
               currentId: 1
@@ -427,6 +439,8 @@
     document.getElementById('f-date').value = m.date || '';
     document.getElementById('f-start').value = m.start || '';
     document.getElementById('f-end').value = m.end || '';
+    document.getElementById('f-facilitator').value = m.facilitator || '';
+    document.getElementById('f-recorder').value = m.recorder || '';
   }
 
   function renderBudget() {
@@ -526,6 +540,8 @@
     html += '<dl class="preview-meta">';
     if (m.date) html += '<dt>日にち：</dt><dd>' + esc(fmtDate(m.date)) + '</dd>';
     if (m.start && m.end) html += '<dt>時間：</dt><dd>' + esc(m.start) + '〜' + esc(m.end) + '</dd>';
+    if (m.facilitator) html += '<dt>司会進行：</dt><dd>' + esc(m.facilitator) + '</dd>';
+    if (m.recorder) html += '<dt>議事録：</dt><dd>' + esc(m.recorder) + '</dd>';
     html += '</dl>';
 
     var hasStart = !!m.start;
@@ -596,6 +612,10 @@
       if (mm.date) head += '　' + esc(fmtDate(mm.date));
       if (mm.start && mm.end) head += '　' + esc(mm.start) + '〜' + esc(mm.end);
       html += '<div class="m-block"><p class="m-head">' + head + '</p>';
+      var roles = [];
+      if (mm.facilitator) roles.push('司会進行：' + esc(mm.facilitator));
+      if (mm.recorder) roles.push('議事録：' + esc(mm.recorder));
+      if (roles.length) html += '<p class="m-roles">' + roles.join('　') + '</p>';
 
       var hasStart = !!mm.start;
       var cursor = hasStart ? parseInt(mm.start.split(':')[0], 10) * 60 + parseInt(mm.start.split(':')[1], 10) : 0;
@@ -792,7 +812,7 @@
   document.getElementById('btn-reset').addEventListener('click', function () {
     if (!confirm('いま開いている会議の入力内容をすべて消して、はじめからつくり直します。よろしいですか？')) return;
     var m = cur();
-    m.name = ''; m.date = ''; m.start = ''; m.end = ''; m.items = [];
+    m.name = ''; m.date = ''; m.start = ''; m.end = ''; m.facilitator = ''; m.recorder = ''; m.items = [];
     syncForm();
     renderAll();
   });
@@ -802,6 +822,8 @@
   bindField('f-date', 'date');
   bindField('f-start', 'start');
   bindField('f-end', 'end');
+  bindField('f-facilitator', 'facilitator');
+  bindField('f-recorder', 'recorder');
   syncForm();
   renderAll();
 })();
