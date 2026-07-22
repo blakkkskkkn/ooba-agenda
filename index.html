@@ -172,6 +172,11 @@
 
   .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
 
+  .share-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .share-msg { margin-top: 12px; font-size: 14px; padding: 10px 14px; border-radius: 8px; }
+  .share-msg.ok { background: var(--accent-soft); color: var(--accent); }
+  .share-msg.error { background: var(--warn-soft); color: var(--warn); }
+
   /* 月まとめ印刷用（画面では常に非表示、印刷時のみ表示） */
   .monthly { display: none; }
 
@@ -281,6 +286,17 @@
     <p class="preview-note no-print" id="print-hint" hidden>印刷の画面が開かないときは、キーボードで ⌘P（Windows のときは Ctrl+P）を押すと印刷できます。</p>
     <p class="preview-note no-print">「月まとめを印刷する」を押すと、保存されているすべての会議を1枚の一覧（時間と議題だけ）にして印刷できます。</p>
     <p class="preview-note no-print">入力した内容はこのブラウザに自動保存されます。次にこのページを開いたときも残っています。</p>
+  </section>
+
+  <section class="step no-print" id="share">
+    <h2>ほかの人とデータを受け渡す</h2>
+    <p class="hint">主任・副主任などで会議を分担しているときに使います。自分の会議を「書き出す」でファイルにして相手に渡し、受け取った人は「読み込む」で自分のデータに合流できます（上書きではなく足し算）。同じ会議名・日付のものは新しい内容に置きかわります。</p>
+    <div class="share-actions">
+      <button id="btn-export">自分の会議を書き出す（渡す）</button>
+      <button id="btn-import">受け取ったファイルを読み込む（合流）</button>
+    </div>
+    <input type="file" id="file-import" accept=".json,application/json" hidden>
+    <p class="share-msg" id="share-msg" hidden></p>
   </section>
 
   <section class="monthly" id="monthly"></section>
@@ -652,6 +668,128 @@
     save();
   }
 
+  // ---------- データの受け渡し（書き出し・合流読み込み） ----------
+
+  function meaningfulMeetings() {
+    return state.meetings.filter(function (m) {
+      return m.name || m.date || (m.items && m.items.length > 0);
+    });
+  }
+
+  function showShareMsg(text, isError) {
+    var el = document.getElementById('share-msg');
+    el.textContent = text;
+    el.hidden = false;
+    el.className = 'share-msg ' + (isError ? 'error' : 'ok');
+  }
+
+  function exportData() {
+    var list = meaningfulMeetings();
+    if (list.length === 0) {
+      showShareMsg('書き出せる会議がまだありません。会議を入力してからお試しください。', true);
+      return;
+    }
+    var payload = { app: 'ooba-agenda', version: 2, exportedAt: new Date().toISOString(), meetings: list };
+    var json = JSON.stringify(payload, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var t = new Date();
+    var name = '会議アジェンダ_' + t.getFullYear() +
+      ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '.json';
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    showShareMsg('「' + name + '」を書き出しました。このファイルを相手に渡してください。', false);
+  }
+
+  function sig(m) {
+    return (m.name || '') + ' ' + (m.date || '');
+  }
+
+  function sanitizeMeeting(src) {
+    var m = {
+      id: nextMeetingId++,
+      name: typeof src.name === 'string' ? src.name : '',
+      date: typeof src.date === 'string' ? src.date : '',
+      start: typeof src.start === 'string' ? src.start : '',
+      end: typeof src.end === 'string' ? src.end : '',
+      facilitator: typeof src.facilitator === 'string' ? src.facilitator : '',
+      recorder: typeof src.recorder === 'string' ? src.recorder : '',
+      items: []
+    };
+    var items = Array.isArray(src.items) ? src.items : [];
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i] || {};
+      m.items.push({
+        id: nextItemId++,
+        title: typeof it.title === 'string' ? it.title : '',
+        type: (it.type === 'decide' || it.type === 'share' || it.type === 'discuss') ? it.type : null,
+        q: it.q === 2 ? 2 : 1,
+        minutes: (typeof it.minutes === 'number' && it.minutes > 0) ? it.minutes : 0,
+        minutesEdited: !!it.minutesEdited,
+        goal: typeof it.goal === 'string' ? it.goal : '',
+        goalEdited: !!it.goalEdited
+      });
+    }
+    return m;
+  }
+
+  function mergeMeetings(incoming) {
+    var added = 0, updated = 0;
+    for (var i = 0; i < incoming.length; i++) {
+      var src = incoming[i];
+      if (!src || typeof src !== 'object') continue;
+      var clean = sanitizeMeeting(src);
+      if (!clean.name && !clean.date && clean.items.length === 0) continue; // 空の会議は取り込まない
+      var matched = -1;
+      if (clean.name || clean.date) {
+        var s = sig(clean);
+        for (var j = 0; j < state.meetings.length; j++) {
+          if (sig(state.meetings[j]) === s) { matched = j; break; }
+        }
+      }
+      if (matched >= 0) {
+        clean.id = state.meetings[matched].id; // 既存IDを保つ
+        state.meetings[matched] = clean;
+        updated++;
+      } else {
+        state.meetings.push(clean);
+        added++;
+      }
+    }
+    if (!cur()) state.currentId = state.meetings[0].id;
+    save();
+    return { added: added, updated: updated };
+  }
+
+  function importFromText(text) {
+    var data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      showShareMsg('ファイルを読み込めませんでした。会議アジェンダで書き出したファイルか確認してください。', true);
+      return;
+    }
+    var incoming = (data && Array.isArray(data.meetings)) ? data.meetings
+      : (Array.isArray(data) ? data : null);
+    if (!incoming) {
+      showShareMsg('このファイルは会議アジェンダのデータではないようです。', true);
+      return;
+    }
+    var r = mergeMeetings(incoming);
+    syncForm();
+    renderAll();
+    if (r.added === 0 && r.updated === 0) {
+      showShareMsg('取り込める会議がありませんでした。', true);
+    } else {
+      showShareMsg(r.added + '件を追加、' + r.updated + '件を更新しました。上の「つくった会議」から切り替えられます。', false);
+    }
+  }
+
   // ---------- events ----------
 
   function bindField(id, key) {
@@ -807,6 +945,21 @@
 
   window.addEventListener('afterprint', function () {
     document.body.classList.remove('print-monthly');
+  });
+
+  // データの受け渡し
+  document.getElementById('btn-export').addEventListener('click', exportData);
+  document.getElementById('btn-import').addEventListener('click', function () {
+    document.getElementById('file-import').click();
+  });
+  document.getElementById('file-import').addEventListener('change', function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () { importFromText(reader.result); };
+    reader.onerror = function () { showShareMsg('ファイルを読み込めませんでした。', true); };
+    reader.readAsText(file);
+    e.target.value = ''; // 同じファイルを続けて選べるように
   });
 
   document.getElementById('btn-reset').addEventListener('click', function () {
